@@ -1,0 +1,51 @@
+
+services:
+  laravel:
+    build:
+      context: ./backend
+    container_name: desarrollo_laravel
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URI: "mongodb://devroot:devpass@mongo:27017/laravel_app?authSource=admin"
+      MONGODB_DATABASE: "laravel_app"
+    depends_on:
+      - mongo
+    command:
+      - sh
+      - -c
+      - |
+        if [ -f artisan ]; then
+          php artisan serve --host=0.0.0.0 --port=8000
+        else
+          echo "Inicializa Laravel en ./backend"
+          sleep infinity
+        fi
+
+  angular:
+    build:
+      context: ./frontend
+    container_name: desarrollo_angular
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "4201:4200"
+
+  mongo:
+    image: docker.io/library/mongo:7.0
+    container_name: desarrollo_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: devroot
+      MONGO_INITDB_ROOT_PASSWORD: devpass
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "127.0.0.1:27017:27017"
+
+volumes:
+  mongodb_data:
